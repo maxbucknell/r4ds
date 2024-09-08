@@ -1,0 +1,135 @@
+# Data Transformations
+
+```{r}
+#| output: false
+library(tidyverse)
+library(nycflights13)
+```
+
+```{r}
+glimpse(flights)
+```
+
+## 3.2.5 Row Exercises
+
+1. In a single pipeline for each condition, find all flights that meet the
+condition:
+
+- Had an arrival delay of two or more hours
+
+```{r}
+flights |>
+  filter(arr_delay >= 120) |>
+  select(year, month, day, carrier, flight, origin, dest)
+```
+
+- Flew to Houston (`IAH` or `HOU`)
+
+```{r}
+flights |>
+  filter(dest %in% c("IAH", "HOU")) |>
+  select(year, month, day, carrier, flight, origin, dest)
+```
+
+- Were operated by United, American, or Delta
+
+```{r}
+flights |>
+  filter(carrier %in% c("UA", "AA", "DL")) |>
+  select(year, month, day, carrier, flight, origin, dest)
+```
+
+- Departed in Summer (July, August, and September)
+
+```{r}
+flights |>
+  filter(month %in% 7:9) |>
+  select(year, month, day, carrier, flight, origin, dest)
+```
+
+- Arrived more than two hours late, but did not leave late
+
+```{r}
+flights |>
+  filter(dep_delay <= 0, arr_delay > 120) |>
+  select(year, month, day, carrier, flight, origin, dest, dep_delay, arr_delay)
+```
+
+- Were delayed by at least an hour, but made up over 30 minutes in flight.
+
+```{r}
+flights |>
+  filter(dep_delay >= 60, dep_delay - arr_delay > 30) |>
+  select(year, month, day, carrier, flight, origin, dest, dep_delay, arr_delay)
+```
+
+### Laura's Version
+
+```{r}
+flights |>
+  filter(dep_delay >= 60, arr_delay <= 30) |>
+  select(dep_delay, arr_delay, year, month, day, carrier, flight, origin, dest, dep_delay, arr_delay)
+
+flights |>
+  mutate(made_up = dep_delay - arr_delay)
+```
+
+* `made_up` = `scheduled_air_time - air_time`
+* `scheduled_air_time` = `sched_arr_time - sched_dep_time`
+* `air_time` = `arr_time - dep_time`
+* `arr_delay` = `arr_time - sched_arr_time`
+* => `arr_delay + sched_arr_time` = `arr_time`
+* => `sched_arr_time` = `arr_time - arr_delay`
+* `dep_delay` = `dep_time - sched_dep_time`
+* => `dep_delay + sched_dep_time` = `dep_time`
+* => `sched_dep_time` = `dep_time - dep_delay`
+
+* => `scheduled_air_time` = `(arr_time - arr_delay) - (dep_time - dep_delay)`
+* = `scheduled_air_time` = `arr_time - arr_delay - dep_time + dep_delay`
+* => `made_up` = `arr_time + dep_delay - arr_delay - dep_time - (arr_time - dep_time)`
+* => `made_up` = `dep_delay - arr_delay`
+
+
+
+3. Sort `flights` to find the fastest flights.
+
+```{r}
+flights |>
+  mutate(speed = distance / air_time) |>
+  arrange(desc(speed)) |>
+  select(year, month, day, carrier, flight, origin, dest, speed)
+```
+
+4. Was there a flight on every day of 2013?
+
+```{r}
+flight_totals_by_day <- flights |>
+  count(year, month, day)
+
+start_date <- ISOdate(2013, 1, 1)
+end_date <- ISOdate(2013, 12, 31)
+tibble(date = seq(from = start_date, to = end_date, by = "1 day")) |>
+  mutate(
+    year = year(date),
+    month = month(date),
+    day = day(date),
+    .keep = "none"
+  ) |>
+  left_join(flight_totals_by_day, join_by(year, month, day)) |>
+  filter(n == 0)
+```
+
+5. Which flights travelled the farthest distance? Which travelled the least
+   distance?
+
+```{r}
+flights_by_distance <- flights |>
+  arrange(desc(distance)) |>
+  select(year, month, day, carrier, flight, origin, dest, distance)
+
+flights_by_distance |>
+  slice_head(n = 10)
+
+flights_by_distance |>
+  slice_tail(n = 10)
+```

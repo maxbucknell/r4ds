@@ -1,0 +1,105 @@
+# Data Visualization
+
+```{r}
+#| output: false
+library(tidyverse)
+library(palmerpenguins)
+library(ggthemes)
+```
+
+## 1.2.5 Exercises
+
+1. How many rows are in penguins? How many columns?
+
+```{r}
+print(nrow(penguins))
+print(ncol(penguins))
+```
+
+2. What does the bill_depth_mm variable in the penguins data frame describe?
+   Read the help for ?penguins to find out.
+
+It measures the depth in mm of the bills of the penguins. The depth is the
+height of the bill, as opposed to the length. Bill width is not measured.
+
+3. Make a scatterplot of bill_depth_mm vs. bill_length_mm. That is, make a
+   scatterplot with bill_depth_mm on the y-axis and bill_length_mm on the
+   x-axis. Describe the relationship between these two variables.
+
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(x = bill_length_mm, y = bill_depth_mm, color = species)
+) +
+  geom_point(mapping = aes(shape = species), na.rm = TRUE) +
+  geom_smooth(method = "lm", na.rm = TRUE) +
+  labs(
+    title = "Penguin Bill Length vs. Depth (mm)",
+    subtitle = "Segmented by species: Adelie, Chinstrap, & Gentoo",
+    x = "Bill Length (mm)",
+    y = "Bill Depth (mm)",
+    color = "Species", shape = "Species"
+  )
+```
+
+4. What happens if you make a scatterplot of species vs. bill_depth_mm? What
+   might be a better choice of geom?
+
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(
+    x = species,
+    y = bill_depth_mm,
+    color = species,
+    shape = species
+  )
+) +
+  geom_point(na.rm = TRUE) +
+  labs(
+    title = "Penguine Bill Depth by Species",
+    x = "Species",
+    y = "Bill Depth (mm)",
+    color = "Species", shape = "Species"
+  )
+
+ggplot(
+  data = penguins,
+  mapping = aes(x = species, y = bill_depth_mm, color = species)
+) +
+  geom_boxplot() +
+  labs(
+    title = "Penguine Bill Depth by Species",
+    x = "Species",
+    y = "Bill Depth (mm)",
+    color = "Species"
+  )
+```
+
+Obligatory link to https://nightingaledvs.com/ive-stopped-using-box-plots-should-you/
+
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(x = species, y = bill_depth_mm, color = species)
+) +
+  geom_jitter(alpha = 0.3, height = 0, width = 0.1, na.rm = TRUE) +
+  labs(
+    title = "Penguine Bill Depth by Species",
+    x = "Species",
+    y = "Bill Depth (mm)",
+    color = "Species"
+  )
+```
+
+8. Recreate the following visualization. What aesthetic should bill_depth_mm be
+   mapped to? And should it be mapped at the global level or at the geom level?
+
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(x = flipper_length_mm, y = body_mass_g)
+) +
+  geom_point(mapping = aes(color = bill_depth_mm), na.rm = TRUE) +
+  geom_smooth(na.rm = TRUE)
+```
