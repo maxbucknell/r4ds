@@ -1,0 +1,79 @@
+# Layers
+
+## Aesthetic Mappings
+
+```{r}
+#| output: false
+
+library(tidyverse)
+```
+
+### Exercises
+
+> 1. Create a scatterplot of `hwy` vs. `displ` where the points are pink filled
+>    in triangles.
+
+```{r}
+ggplot(
+  mpg,
+  aes(x = displ, y = hwy)
+) +
+  geom_point(color = "#ff54cd", shape = "triangle") +
+  labs(
+    title = "Engine Displacement (Litres) vs. Highway Fuel Efficiency (mpg)",
+    caption = "Data from EPA for 38 popular models of cars, 1999–2008",
+    x = "Displacement (Litres)",
+    y = "Efficiency (mpg)"
+  )
+```
+
+> 2. Why did the following code not result in a plot with blue points?
+
+```
+ggplot(mpg) +
+  geom_point(aes(x = displ, y = hwy, color = "blue"))
+```
+
+My guess is that it's because the color is set in the mapping argument, rather
+than as a static value...
+
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = displ, y = hwy, color = "blue"))
+```
+
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = displ, y = hwy), color = "blue")
+```
+
+> 3. What does the stroke aesthetic do? What shapes does it work with?
+
+My guess here is that it sets the stroke width on hollow and differently filled
+shapes. Let's see the docs...
+
+```
+# For shapes that have a border (like 21), you can colour the inside and
+# outside separately. Use the stroke aesthetic to modify the width of the
+# border
+```
+
+Ta-dah.
+
+> 4. What happens if you map an aesthetic to something other than a variable
+>    name, like aes(`color = displ < 5`)? Note, you’ll also need to specify `x`
+>    and `y`.
+
+I reckon it will use the expression as a vectorised input, like a virtual column,
+and give me a legend for `displ < 5`, with values of `0` and `1`. Let's see...
+
+
+```{r}
+ggplot(
+  mpg,
+  aes(x = displ, y = hwy, color = displ < 5)
+) +
+  geom_point(shape = "square")
+```
+
+Okay so it's `TRUE` and `FALSE`, but I was pretty close!

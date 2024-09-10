@@ -9,15 +9,18 @@ library(ggthemes)
 
 ## 1.2.5 Exercises
 
-1. How many rows are in penguins? How many columns?
+> 1. How many rows are in penguins? How many columns?
 
 ```{r}
+#! output: false
 print(nrow(penguins))
 print(ncol(penguins))
 ```
 
-2. What does the bill_depth_mm variable in the penguins data frame describe?
-   Read the help for ?penguins to find out.
+There are `r nrow(penguins)` rows and `r ncol(penguins)` columns in penguins.
+
+### 2. What does the bill_depth_mm variable in the penguins data frame
+describe? Read the help for ?penguins to find out.
 
 It measures the depth in mm of the bills of the penguins. The depth is the
 height of the bill, as opposed to the length. Bill width is not measured.
