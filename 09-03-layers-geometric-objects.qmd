@@ -1,0 +1,174 @@
+# Layers
+
+## Geometric Objects
+
+```{r}
+#| output: false
+
+library(tidyverse)
+library(nycflights13)
+library(zoo)
+```
+
+### Exercises
+
+> 1. What geom would you use to draw a line chart? A boxplot? A histogram? An
+>    area chart?
+
+```{r}
+flights |>
+  summarize(
+    n = n(),
+    .by = c("month")
+  ) |>
+  ggplot(aes(x = month, y = n / 1000)) +
+  geom_line() +
+  scale_x_continuous(
+    n.breaks = 12,
+    labels = function(x) {
+      return(month.abb[x])
+    }
+  ) +
+  labs(
+    x = "Month",
+    y = "Number of Flights (k)",
+    title = "Flights per month out of NYC",
+    subtitle = "2013, flights out of JFK, LGA, EWR"
+  )
+
+flights |>
+  ggplot(aes(x = month, y = distance)) +
+  geom_boxplot(aes(group = month)) +
+  scale_x_continuous(
+    n.breaks = 12,
+    labels = function(x) {
+      return(month.abb[x])
+    }
+  ) +
+  labs(
+    x = "Month",
+    y = "Distance (miles)",
+    title = "Distance of Flights out of NYC by Month",
+    subtitle = "2013, flights out of JFK, LGA, EWR"
+  )
+
+flights |>
+  ggplot(aes(x = dep_time %% 2400)) +
+  geom_histogram(
+    binwidth = 100,
+    boundary = 0,
+    fill = "#39a588",
+    na.rm = TRUE
+  ) +
+  scale_x_continuous(
+    breaks = seq(0, 2400, by = 600),
+    minor_breaks = seq(0, 2400, by = 100),
+    limits = c(0, 2400),
+    labels = function(x) {
+      hour <- (x %/% 100) %% 24
+
+      return(sprintf("%0.2d:00", hour))
+    }
+  ) +
+  labs(
+    x = "Departure Time",
+    y = "Number of Flights",
+    title = "Flights by Departure Time",
+    subtitle = "2013, flights out of JFK, LGA, EWR"
+  )
+
+flights |>
+  filter(month == 1) |>
+  mutate(departure = make_date(year, month, day)) |>
+  summarize(
+    n = n(),
+    .by = c("departure", "origin")
+  ) |>
+  mutate(
+    rolling = rollmean(n, k = 7, align = "right", na.pad = TRUE)
+  ) |>
+  ggplot(aes(x = departure, y = rolling)) +
+  geom_area(aes(fill = origin)) +
+  scale_x_date(
+    date_labels = "%b",
+    date_minor_breaks = "1 month",
+  ) +
+  labs(
+    x = "Month",
+    y = "Number of Flights (k)",
+    title = "Flights per month out of NYC",
+    subtitle = "2013, flights out of JFK, LGA, EWR"
+  )
+```
+
+> 2. Earlier in this chapter we used `show.legend` without explaining it:
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_smooth(aes(color = drv), show.legend = FALSE)
+```
+
+> What does `show.legend = FALSE` do here? What happens if you remove it? Why
+> do you think we used it earlier?
+
+In the example from the chapter, the legends were removed because the plots
+themselves were labelled on the y axis. To add a legend would be to obscure the
+plot by duplicating information.
+
+In this example, there is no meaning whatsoever ascribed to the colours.
+
+> 3. What does the se argument to `geom_smooth()` do?
+
+Controls whether or not to show a confidence interval around the line, or just
+show the line. The confidence interval is set via level, and defaults to 0.95.
+
+> 4. Recreate the R code necessary to generate the following graphs. Note that
+>    wherever a categorical variable is used in the plot, it’s `drv`.
+
+> ![](https://r4ds.hadley.nz/layers_files/figure-html/unnamed-chunk-19-1.png){width=300}
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_smooth(se = FALSE)
+```
+
+> ![](https://r4ds.hadley.nz/layers_files/figure-html/unnamed-chunk-19-2.png){width=300}
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_smooth(aes(group = drv), se = FALSE) +
+  geom_point()
+```
+
+> ![](https://r4ds.hadley.nz/layers_files/figure-html/unnamed-chunk-19-3.png){width=300}
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy, color = drv)) +
+  geom_smooth(se = FALSE) +
+  geom_point()
+```
+
+> ![](https://r4ds.hadley.nz/layers_files/figure-html/unnamed-chunk-19-4.png){width=300}
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = drv)) +
+  geom_smooth(se = FALSE)
+```
+
+> ![](https://r4ds.hadley.nz/layers_files/figure-html/unnamed-chunk-19-5.png){width=300}
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = drv)) +
+  geom_smooth(aes(linetype = drv), se = FALSE)
+```
+
+> ![](https://r4ds.hadley.nz/layers_files/figure-html/unnamed-chunk-19-6.png){width=300}
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(color = "white", size = 7) +
+  geom_point(aes(color = drv), size = 3)
+```
