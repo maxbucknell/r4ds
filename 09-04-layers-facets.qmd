@@ -1,0 +1,138 @@
+# Layers
+
+## Facets
+
+```{r}
+#| output: false
+
+library(tidyverse)
+library(palmerpenguins)
+```
+
+### Exercises
+
+> 1. What happens if you facet on a continuous variable?
+
+I don't know, but the first chapter told us they have to be categorical! My
+guess is an error.
+
+```{r}
+penguins |>
+  ggplot(aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point() +
+  facet_wrap(vars(flipper_length_mm))
+```
+
+No, it just treats every value as its own category. Very cute.
+
+> 2. What do the empty cells in the plot above with `facet_grid(drv ~ cyl)`
+>    mean? Run the following code. How do they relate to the resulting plot?
+
+Well, they represent combinations of `drv` and `cyl` that do not appear in the
+given data set.
+
+The plot referred to in the question:
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_grid(drv ~ cyl, scales = "free")
+```
+
+And the "following code":
+
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = drv, y = cyl))
+```
+
+This demonstrates the locations at which there would be empty facets. No 7
+cylinder vehicles, and no 4 cylinder RWDs, or 5 cylinder RWDs or 4WDs.
+
+> 3. What plots does the following code make? What does `.` do?
+
+Well, as per the docs, it seems that sending a formula to the `facet_*`
+functions is a compatibility mode, and we should be setting `rows` and
+`columns`, which is what I will do. I am still learning about formulae in R,
+but I believe that a `.` means that there is nothing on that side of the
+formula, and that there should be no facets there. I would hence expect the
+first plot to only facet along rows, and the second to only facet along columns.
+
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ .)
+```
+
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = displ, y = hwy)) +
+  facet_grid(. ~ cyl)
+```
+
+> 4. Take the first faceted plot in this section:
+
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = displ, y = hwy)) +
+  facet_wrap(~ cyl, nrow = 2)
+```
+
+> What are the advantages to using faceting instead of the color aesthetic?
+> What are the disadvantages? How might the balance change if you had a larger
+> dataset?
+
+Faceting and colour both attempt to visualise a third dimension in an otherwise
+two-dimensional plot. Colours allow us to see clustering within a dataset,
+whereas facets allow us to compare trends in places where colours might
+overlap. Each facet also shows less data per plot, which will help keep plots
+cleaner as a data set grows.
+
+> 5. Read `?facet_wrap`. What does `nrow` do? What does `ncol` do? What other
+>    options control the layout of the individual panels? Why doesn’t
+>    `facet_grid()` have `nrow` and `ncol` arguments?
+
+`facet_wrap()` only facets on a single dimension, so it can be given a specific
+number of rows and columns to wrap to. `facet_grid()` gets no such affordance
+since its dimensions are defined by the size of the facets given to each axis.
+
+`dir` also controls the layout of the individual panels, and I guess the scale
+and axis arguments do as well. I don't know man, it's a vague question.
+
+> 6. Which of the following plots makes it easier to compare engine size
+>    (`displ`) across cars with different drive trains? What does this say
+>    about when to place a faceting variable across rows or columns?
+
+Just looking at the code, I'm going to guess that having multiple rows so that
+our histograms align vertically is going to make this easier to look at.
+
+```{r}
+ggplot(mpg, aes(x = displ)) +
+  geom_histogram() +
+  facet_grid(drv ~ .)
+
+ggplot(mpg, aes(x = displ)) +
+  geom_histogram() +
+  facet_grid(. ~ drv)
+```
+
+Oh boy was I right.
+
+> 7. Recreate the following plot using `facet_wrap()` instead of
+>    `facet_grid().` How do the positions of the facet labels change?
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ .)
+```
+
+Hmm.
+
+```{r}
+ggplot(mpg) +
+  geom_point(aes(x = displ, y = hwy)) +
+  facet_wrap(vars(drv), dir = "v", strip.position = "right")
+```
+
+Well, the facet labels were up top by default.
