@@ -1,0 +1,95 @@
+# Layers
+
+## Statistical Transformations
+
+```{r}
+#| output: false
+
+library(tidyverse)
+```
+
+> 1. What is the default geom associated with `stat_summary()`? How could you
+>    rewrite [this] plot to use that geom function instead of the stat
+>    function?
+
+```{r}
+ggplot(diamonds) +
+  stat_summary(
+    aes(x = cut, y = depth),
+    fun.min = min,
+    fun.max = max,
+    fun = median
+  )
+```
+
+```{r}
+ggplot(diamonds) +
+  geom_pointrange(
+    aes(x = cut, y = depth),
+    stat = "summary",
+    fun.min = min,
+    fun = median,
+    fun.max = max
+  )
+```
+
+This was frustrating to do. I initially tried to use `after_stat(...)` calls
+using `stat_boxplot`, and that didn't work. It was not obvious to me that
+additional arguments given to `geom_*` are passed to the `stat_*` function.
+
+So, looking into it, it seems that the `mapping` argument is passed from
+`geom_*` to `stat_*`, or vice versa. But, I was trying to use
+`after_stat(middle)` from `stat_boxplot` as the `y` argument for the plot,
+making some kind of weird loop. `stat_boxplot` yields `middle`, which is the
+aesthetic that `geom_boxplot` consumes.
+
+I don't think I'm making any sense, but it makes sense to me!
+
+> 2. What does `geom_col()` do? How is it different from `geom_bar()`?
+
+While `geom_bar` uses `stat_count` by default to set the `y` value, `geom_col`
+is hardcoded to use `stat_identity`, displaying the same information as
+`geom_point`.
+
+> 3. Most geoms and stats come in pairs that are almost always used in concert.
+>    Make a list of all the pairs. What do they have in common? (Hint: Read
+>    through the documentation.)
+
+Oh my god no. Look
+[here](https://ggplot2.tidyverse.org/reference/index.html#layers) there are
+loads, jeez.
+
+> 4. What variables does `stat_smooth()` compute? What arguments control its
+>    behavior?
+
+Again, read the docs. It computes predicted values and confidence intervals,
+and has parameters for them.
+
+> 5. In our proportion bar chart, we needed to set `group = 1`. Why?
+
+Great question, I'm not sure. One assumes that's a static value that puts
+everything in a single group. But why? What happens if we render without it?
+
+```{r}
+ggplot(diamonds, aes(x = cut, y = after_stat(prop), group = 2)) + 
+  geom_bar()
+```
+
+So I tried it without and it brings all of the values up to 1.0. but the group
+being 1 doesn't matter, it can be anything.
+
+All I get from the docs is that it says `after_stat(prop)` is "groupwise
+proportion", so it is the fraction of that value relative to the group. We need
+them all in the same group, and by default they are not.
+
+I don't know why they are not, though. From the docs:
+
+> The group aesthetic is by default set to the interaction of all discrete
+> variables in the plot. This choice often partitions the data correctly, but
+> when it does not, or when no discrete variable is used in the plot, you will
+> need to explicitly define the grouping structure by mapping group to a
+> variable that has a different value for each group.
+
+So it seems that it groups by a combination of all other discrete variables,
+including x for us. So to "ungroup" data, we need to hardcode it to a specific
+value. Neat.

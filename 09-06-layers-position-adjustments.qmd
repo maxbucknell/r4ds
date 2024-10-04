@@ -1,0 +1,71 @@
+# Layers
+
+# Position Adjustments
+
+```{r}
+#| output: false
+
+library(tidyverse)
+```
+
+
+> 1. What is the problem with the following plot? How could you improve it?
+
+```{r}
+ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_point()
+```
+
+I'm gonna say sight unseen that we have a really small variance in x, meaning
+that we have overlapping values.
+
+Boy was I right. Let's add some transparency:
+
+```{r}
+ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_point(alpha = 0.6, color = "#6994d1")
+```
+
+Now let's jitter the points:
+
+```{r}
+ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_point(alpha = 0.6, color = "#6994d1", position = "jitter")
+```
+
+> 2. What, if anything, is the difference between the two plots? Why?
+
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point()
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(position = "identity")
+```
+
+Oh I bet these are the same. I'm almost certain the default value for
+`position` with a scatter plot is "identity".
+
+> 3. What parameters to `geom_jitter()` control the amount of jittering?
+
+`width` and `height`. They are proportions of the resolution of the data, which
+is to say the differences between them. I think that means that for more
+continuous data, they move less.
+
+> 4. Compare and contrast `geom_jitter()` with `geom_count()`.
+
+Well, one shows overplotting on a scatter by moving, and the other by
+increasing the size of the points.
+
+> 5. What’s the default position adjustment for `geom_boxplot()`? Create a
+>    visualization of the mpg dataset that demonstrates it.
+
+The default value is `position_dodge2`.
+
+```{r}
+ggplot(mpg) +
+  geom_boxplot(
+    aes(x = cty, y = hwy, group = cyl),
+    position = "identity"
+  )
+```
